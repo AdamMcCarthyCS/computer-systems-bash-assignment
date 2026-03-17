@@ -48,6 +48,9 @@ main_menu_dispatcher () {
       2)
         list_books
       ;;
+      4)
+        delete_book
+      ;;
       5)
         FLAG=0
       ;;
@@ -83,6 +86,15 @@ list_books () {
       "----", "-----", "---------"}
     {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
     "$DATABASE"
+}
+
+delete_book() {
+  list_books
+  echo
+  read -p "Enter the id of the book you wish to delete: " DELETE_CHOICE
+  touch tmp   
+  awk -F"|" -v id="$DELETE_CHOICE" '$1 != id' "$DATABASE" > tmp
+  mv tmp "$DATABASE"
 }
 
 # program loop
