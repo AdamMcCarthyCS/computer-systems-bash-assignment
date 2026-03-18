@@ -108,14 +108,17 @@ $BOOK_PAGE_COUNT|$BOOK_PUBLISHER"
   echo "$LINE" >> "$DATABASE"
 }
 
+list_books_header () {
+  printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
+         "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher"
+  printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
+  "--"  "-----"  "------" "----"  "-----"  "---------"
+}
+
 list_books () {
-  awk -F"|" 'BEGIN {
-    printf "%-3s %-30s %-20s %-6s %-5s %s\n", "ID", "Title", "Author",\
-      "Year", "Pages", "Publisher"
-    printf "%-3s %-30s %-20s %-6s %-5s %s\n", "--", "-----", "------",\
-      "----", "-----", "---------"}
-    {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
-    "$DATABASE"
+  list_books_header
+  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %s\n", $1, $2, $3, $4, $5, $6}'\
+  "$DATABASE"
 }
 
 delete_book() {
