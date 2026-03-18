@@ -29,7 +29,6 @@
 29|The Hunger Games|Suzanne Collins|2008|374|Scholastic Press
 30|The Girl with the Dragon Tattoo|Stieg Larsson|2005|465|Norstedts Forlag
 31|A Tale of Two Cities|Charles Dickens|1859|489|Chapman & Hall
-33|The Kite Runner|Khaled Hosseini|2003|371|Riverhead Books
 34|Life of Pi|Yann Martel|2001|331|Knopf Canada
 35|The Road|Cormac McCarthy|2006|287|Alfred A. Knopf
 36|The Shining|Stephen King|1977|447|Doubleday
@@ -37,4 +36,3 @@
 38|Dune|Frank Herbert|1965|412|Chilton Books
 39|The Handmaid's Tale|Margaret Atwood|1985|311|McClelland and Stewart
 40|The Fault in Our Stars|John Green|2012|313|Dutton Books
-

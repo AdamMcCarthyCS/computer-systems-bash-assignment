@@ -71,7 +71,7 @@ add_book () {
   read -p "Enter the year the book was published: " PUBLICATION_YEAR
   read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
   read -p "Enter the publisher of the book: " BOOK_PUBLISHER
-  BOOK_COUNT=$(wc -l "$DATABASE" | awk '{print $1}')
+  BOOK_COUNT=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
   LINE="$(($BOOK_COUNT + 1))|$BOOK_TITLE|$BOOK_AUTHOR|$PUBLICATION_YEAR|\
 $BOOK_PAGE_COUNT|$BOOK_PUBLISHER"
 
