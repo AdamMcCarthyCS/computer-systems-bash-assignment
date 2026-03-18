@@ -75,23 +75,24 @@ main_menu_dispatcher () {
 list_menu_dispatcher() {
   print_list_menu
   read -p "Please choose a menu option by entering an integer: " LIST_CHOICE
-  FLAG=0
-  while [[ FLAG -eq 0 ]]; do
+  FLAG=1
+  while [[ FLAG -eq 1 ]]; do
     case "$LIST_CHOICE" in
     1)
       list_books
-      FLAG=1 
+      FLAG=0 
     ;; 
     0) 
       main_menu_dispatcher
-      FLAG=1
+      FLAG=0
     ;;
     *)
       echo "$LIST_CHOICE" is not a valid option
-      FLAG=0
+      FLAG=1
     esac
  done
  }
+
 # crud functions
 
 add_book () {
@@ -110,15 +111,18 @@ $BOOK_PAGE_COUNT|$BOOK_PUBLISHER"
 
 list_books_header () {
   printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
-         "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher"
+    "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher"
   printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
-  "--"  "-----"  "------" "----"  "-----"  "---------"
+    "--"  "-----"  "------" "----"  "-----"  "---------"
 }
 
 list_books () {
   list_books_header
-  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %s\n", $1, $2, $3, $4, $5, $6}'\
-  "$DATABASE"
+  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %s\n",\
+    $1, $2, $3, $4, $5, $6}' "$DATABASE"
+}
+dist_books_by_author() {
+  read -p "Enter the name of an author: " AUTHOR_CHOICE
 }
 
 delete_book() {
@@ -128,6 +132,51 @@ delete_book() {
   touch tmp   
   awk -F"|" -v id="$DELETE_CHOICE" '$1 != id' "$DATABASE" > tmp
   mv tmp "$DATABASE"
+}
+
+# Validation functions
+
+# allow ids starting from 1 and upto 9999
+validate_id () {
+  if [[ $1 =~ ^[1-9][0-9]{0,3}$ ]]; then
+    return 0
+  else 
+    return 1
+  fi
+}
+
+# allow multi word alphanumeric book titles and publisher names
+validate_title_publisher() {
+  if [[ $1 =~ ^[[:alnum:]]+( [[:alnum:]]+)*$ ]]; then
+    return 0
+  else 
+    return 1
+  fi
+}
+
+# allow authors names with middle initials
+validate_author_name () {
+  if [[ $1 =~ ^[A-Z][a-z]+( [A-Z][a-z]+\.?)*$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+validate_year () {
+  if [[ $1 =~ ^(1[5-9]|20)[0-9]{2}$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+validate_pages () {
+  if [[ $1 =~ ^[1-9][0-9]{1,3}$ ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 # program loop
