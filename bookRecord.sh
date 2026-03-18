@@ -36,6 +36,16 @@ print_main_menu () {
   echo
 }
 
+print_list_menu () {
+  echo "Please choose an option by entering an integer: "
+  echo "1) List all books"
+  echo "2) List all books by author"
+  echo "3) List all books before a year"
+  echo "4) List all books after a year"
+  echo "5) List all books below a certain page count"
+  echo "0) Exit to the main menu"
+}
+
 main_menu_dispatcher () {
   FLAG=1
   while [[ FLAG -eq 1 ]]; do
@@ -46,7 +56,7 @@ main_menu_dispatcher () {
         add_book
       ;;
       2)
-        list_books
+        list_menu_dispatcher
       ;;
       4)
         delete_book
@@ -62,6 +72,26 @@ main_menu_dispatcher () {
  done
 }
 
+list_menu_dispatcher() {
+  print_list_menu
+  read -p "Please choose a menu option by entering an integer: " LIST_CHOICE
+  FLAG=0
+  while [[ FLAG -eq 0 ]]; do
+    case "$LIST_CHOICE" in
+    1)
+      list_books
+      FLAG=1 
+    ;; 
+    0) 
+      main_menu_dispatcher
+      FLAG=1
+    ;;
+    *)
+      echo "$LIST_CHOICE" is not a valid option
+      FLAG=0
+    esac
+ done
+ }
 # crud functions
 
 add_book () {
