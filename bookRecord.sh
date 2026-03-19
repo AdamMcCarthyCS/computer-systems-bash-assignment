@@ -93,6 +93,8 @@ list_menu_dispatcher() {
 
 # crud functions
 
+# This prompts and validates user input. It is separated as it will be reused
+# for updating books, so the bash is "DRY".
 prompt_book_fields () {
   read -p "Enter the title of the book: " BOOK_TITLE
   read -p "Enter the author of the book: " BOOK_AUTHOR
@@ -145,6 +147,7 @@ validate_id () {
   if [[ $1 =~ ^[1-9][0-9]{0,3}$ ]]; then
     return 0
   else 
+    echo "The ID must be a value between 1 and 9999. Please try again."
     return 1
   fi
 }
@@ -154,6 +157,7 @@ validate_title_publisher() {
   if [[ $1 =~ ^[[:alnum:]]+( [[:alnum:]]+)*$ ]]; then
     return 0
   else 
+    echo "The name must be alphanumeric and may contain spaces. Please try again."
     return 1
   fi
 }
@@ -163,6 +167,8 @@ validate_author_name () {
   if [[ $1 =~ ^[A-Z][a-z]+( [A-Z][a-z]+\.?)*$ ]]; then
     return 0
   else
+    echo "The name must be title case and may contain middle initials."
+    echo "Examples: Goethe, Lao Tzu, Booker T. Washington"
     return 1
   fi
 }
@@ -172,6 +178,7 @@ validate_year () {
   if [[ $1 =~ ^(1[5-9]|20)[0-9]{2}$ ]]; then
     return 0
   else
+    echo "The year of publication must be between 1500 and 2099. Please try again."
     return 1
   fi
 }
@@ -181,6 +188,7 @@ validate_pages () {
   if [[ $1 =~ ^[1-9][0-9]{1,3}$ ]]; then
     return 0
   else
+    echo "The book must have between 10-9999 pages. Please try again."
     return 1
   fi
 }
