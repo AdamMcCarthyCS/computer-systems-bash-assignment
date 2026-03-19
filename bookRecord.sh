@@ -95,24 +95,29 @@ list_menu_dispatcher() {
 
 # crud functions
 
-add_book () {
-  echo "Enter book details:" 
+prompt_book_fields () {
   read -p "Enter the title of the book: " BOOK_TITLE
   read -p "Enter the author of the book: " BOOK_AUTHOR
   read -p "Enter the year the book was published: " PUBLICATION_YEAR
   read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
   read -p "Enter the publisher of the book: " BOOK_PUBLISHER
+
+  printf '%s|%s|%s|%s|%s|%s' \
+  "$BOOK_TITLE" "$BOOK_AUTHOR" "$PUBLICATION_YEAR" "$BOOK_PAGE_COUNT" "$BOOK_PUBLISHER"
+}
+
+add_book () {
+  echo "Enter book details:" 
+  BOOK_DETAILS=$(prompt_book_fields)
   BOOK_COUNT=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
-  LINE="$(($BOOK_COUNT + 1))|$BOOK_TITLE|$BOOK_AUTHOR|$PUBLICATION_YEAR|\
-$BOOK_PAGE_COUNT|$BOOK_PUBLISHER"
+  LINE="$(($BOOK_COUNT + 1))|$BOOK_DETAILS"
 
   echo "$LINE" >> "$DATABASE"
 }
 
 list_books_header () {
   printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
-    "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher"
-  printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
+    "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher" printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
     "--"  "-----"  "------" "----"  "-----"  "---------"
 }
 
@@ -163,6 +168,7 @@ validate_author_name () {
   fi
 }
 
+# allow years from 1500-2099
 validate_year () {
   if [[ $1 =~ ^(1[5-9]|20)[0-9]{2}$ ]]; then
     return 0
@@ -171,6 +177,7 @@ validate_year () {
   fi
 }
 
+# allow books to have 10-9999 pages
 validate_pages () {
   if [[ $1 =~ ^[1-9][0-9]{1,3}$ ]]; then
     return 0
