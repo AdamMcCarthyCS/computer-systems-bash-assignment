@@ -71,7 +71,7 @@ main_menu_dispatcher () {
       ;;
       *)
       echo "$CHOICE is not a valid option. please try again..."
-      echo
+      pause
       ;;
     esac
   done
@@ -84,6 +84,7 @@ list_menu_dispatcher() {
     case "$LIST_CHOICE" in
     1)
       list_books
+      pause
       break
     ;; 
     0) 
@@ -92,6 +93,7 @@ list_menu_dispatcher() {
     ;;
     *)
       echo "$LIST_CHOICE" is not a valid option
+      pause
     esac
  done
  }
