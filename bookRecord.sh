@@ -131,7 +131,7 @@ list_books_header () {
 
 list_books () {
   list_books_header
-  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %s\n",\
+  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
     $1, $2, $3, $4, $5, $6}' "$DATABASE"
 }
 dist_books_by_author() {
