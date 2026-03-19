@@ -105,10 +105,38 @@ list_menu_dispatcher() {
 prompt_book_fields () {
   while true; do
     read -p "Enter the title of the book: " BOOK_TITLE
-  read -p "Enter the author of the book: " BOOK_AUTHOR
-  read -p "Enter the year the book was published: " PUBLICATION_YEAR
-  read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
-  read -p "Enter the publisher of the book: " BOOK_PUBLISHER
+    if check_empty "$BOOK_TITLE" && validate_title_publisher "$BOOK_TITLE"; then
+      break
+    fi
+  done
+
+  while true; do
+    read -p "Enter the author of the book: " BOOK_AUTHOR
+    if check_empty "$BOOK_AUTHOR" && validate_author_name "$BOOK_AUTHOR"; then
+      break
+    fi
+  done
+
+  while true; do
+    read -p "Enter the year the book was published: " PUBLICATION_YEAR
+    if check_empty "$PUBLICATION_YEAR" && validate_year "$PUBLICATION_YEAR"; then
+      break
+    fi
+  done
+
+  while true; do
+    read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
+    if check_empty "$BOOK_PAGE_COUNT" && validate_pages "$BOOK_PAGE_COUNT"; then
+      break
+    fi
+  done
+
+  while true; do
+    read -p "Enter the publisher of the book: " BOOK_PUBLISHER
+    if check_empty "$BOOK_PUBLISHER" && validate_title_publisher "$BOOK_PUBLISHER"; then
+      break
+    fi
+  done
 
   printf '%s|%s|%s|%s|%s|%s' \
   "$BOOK_TITLE" "$BOOK_AUTHOR" "$PUBLICATION_YEAR" "$BOOK_PAGE_COUNT" "$BOOK_PUBLISHER"
@@ -119,7 +147,9 @@ add_book () {
   BOOK_DETAILS=$(prompt_book_fields)
   BOOK_COUNT=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
   LINE="$(($BOOK_COUNT + 1))|$BOOK_DETAILS"
-
+  # Used <<< (here string) which allows you to pass a string to stdin where a 
+  # filename is expected (https://tldp.org/LDP/abs/html/x17837.html [see first example])
+  awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$BOOK_DETAILS"
   echo "$LINE" >> "$DATABASE"
 }
 
@@ -153,7 +183,9 @@ delete_book() {
 # check value entered is not blank
 check_empty () {
   if [[ -z "$1" ]]; then
-    echo "Entries must not be blank. Please try again."
+    # The warning is sent to stderr bc it is being called from a command
+    # substitution and would not print otherwise
+    echo "Entries must not be blank. Please try again." >&2
     return 1
   fi
   return 0
@@ -164,7 +196,7 @@ validate_id () {
   if [[ $1 =~ ^[1-9][0-9]{0,3}$ ]]; then
     return 0
   else 
-    echo "The ID must be a value between 1 and 9999. Please try again."
+    echo "The ID must be a value between 1 and 9999. Please try again." >&2
     return 1
   fi
 }
@@ -174,18 +206,18 @@ validate_title_publisher() {
   if [[ $1 =~ ^[[:alnum:]]+( [[:alnum:]]+)*$ ]]; then
     return 0
   else 
-    echo "The name must be alphanumeric and may contain spaces. Please try again."
+    echo "The name must be alphanumeric and may contain spaces. Please try again." >&2
     return 1
   fi
 }
 
 # allow authors names with middle initials
 validate_author_name () {
-  if [[ $1 =~ ^[A-Z][a-z]+( [A-Z][a-z]+\.?)*$ ]]; then
+  if [[ $1 =~ ^[A-Z][a-z]+( [A-Z]([a-z]+)?\.?)*$ ]]; then
     return 0
   else
-    echo "The name must be title case and may contain middle initials."
-    echo "Examples: Goethe, Lao Tzu, Booker T. Washington"
+    echo "The name must be title case and may contain middle initials." >&2
+      echo "Examples: Goethe, Lao Tzu, Booker T. Washington" >&2
     return 1
   fi
 }
@@ -195,7 +227,7 @@ validate_year () {
   if [[ $1 =~ ^(1[5-9]|20)[0-9]{2}$ ]]; then
     return 0
   else
-    echo "The year of publication must be between 1500 and 2099. Please try again."
+    echo "The year of publication must be between 1500 and 2099. Please try again." >&2
     return 1
   fi
 }
@@ -205,7 +237,7 @@ validate_pages () {
   if [[ $1 =~ ^[1-9][0-9]{1,3}$ ]]; then
     return 0
   else
-    echo "The book must have between 10-9999 pages. Please try again."
+    echo "The book must have between 10-9999 pages. Please try again." >&2
     return 1
   fi
 }
