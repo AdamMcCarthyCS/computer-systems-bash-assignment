@@ -103,7 +103,8 @@ list_menu_dispatcher() {
 # This prompts and validates user input. It is separated as it will be reused
 # for updating books, so the bash is "DRY".
 prompt_book_fields () {
-  read -p "Enter the title of the book: " BOOK_TITLE
+  while true; do
+    read -p "Enter the title of the book: " BOOK_TITLE
   read -p "Enter the author of the book: " BOOK_AUTHOR
   read -p "Enter the year the book was published: " PUBLICATION_YEAR
   read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
@@ -148,6 +149,15 @@ delete_book() {
 }
 
 # Validation functions
+
+# check value entered is not blank
+check_empty () {
+  if [[ -z "$1" ]]; then
+    echo "Entries must not be blank. Please try again."
+    return 1
+  fi
+  return 0
+}
 
 # allow ids starting from 1 and upto 9999
 validate_id () {
