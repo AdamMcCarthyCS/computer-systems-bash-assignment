@@ -47,11 +47,11 @@ print_list_menu () {
 }
 
 main_menu_dispatcher () {
-  FLAG=1
-  while [[ FLAG -eq 1 ]]; do
+ 
+  while true; do
     print_main_menu
-    read -p "Please enter a choice: " choice
-    case "$choice" in
+    read -p "Please enter a choice: " CHOICE
+    case "$CHOICE" in
       1)
         add_book
       ;;
@@ -62,33 +62,31 @@ main_menu_dispatcher () {
         delete_book
       ;;
       5)
-        FLAG=0
+        break
       ;;
       *)
-      echo "$choice is not a valid option. please try again..."
+      echo "$CHOICE is not a valid option. please try again..."
       echo
       ;;
     esac
- done
+  done
 }
 
 list_menu_dispatcher() {
   print_list_menu
   read -p "Please choose a menu option by entering an integer: " LIST_CHOICE
-  FLAG=1
-  while [[ FLAG -eq 1 ]]; do
+  while true; do
     case "$LIST_CHOICE" in
     1)
       list_books
-      FLAG=0 
+      break
     ;; 
     0) 
       main_menu_dispatcher
-      FLAG=0
+      break
     ;;
     *)
       echo "$LIST_CHOICE" is not a valid option
-      FLAG=1
     esac
  done
  }
@@ -117,7 +115,8 @@ add_book () {
 
 list_books_header () {
   printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
-    "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher" printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
+    "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher" 
+  printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
     "--"  "-----"  "------" "----"  "-----"  "---------"
 }
 
