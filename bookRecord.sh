@@ -6,6 +6,11 @@
 DATABASE="book_database.txt"
 # menu functions
 
+pause () {
+  read -n1 -sp "Press any key to continue..."
+  printf "\n\n"
+}
+
 print_title () {
   echo "Book Record Manager"
   echo "==================="
