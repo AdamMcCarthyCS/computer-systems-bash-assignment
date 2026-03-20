@@ -78,17 +78,20 @@ main_menu_dispatcher () {
 }
 
 list_menu_dispatcher() {
-  print_list_menu
-  read -p "Please choose a menu option by entering an integer: " LIST_CHOICE
   while true; do
+    print_list_menu
+    read -p "Please choose a menu option by entering an integer: " LIST_CHOICE
+
     case "$LIST_CHOICE" in
     1)
       list_books
       pause
-      break
     ;; 
+    2) 
+      list_books_by_author
+      pause
+    ;;
     0) 
-      main_menu_dispatcher
       break
     ;;
     *)
@@ -142,6 +145,8 @@ prompt_book_fields () {
   "$BOOK_TITLE" "$BOOK_AUTHOR" "$PUBLICATION_YEAR" "$BOOK_PAGE_COUNT" "$BOOK_PUBLISHER"
 }
 
+# Create book functions
+
 add_book () {
   echo "Enter book details:" 
   BOOK_DETAILS=$(prompt_book_fields)
@@ -153,6 +158,10 @@ add_book () {
   echo "$LINE" >> "$DATABASE"
 }
 
+# List books functions
+
+# This function prints the header for all listing operations. I separated it from
+# each fuction rather than rewriting it several times within all the list functions
 list_books_header () {
   printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
     "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher" 
@@ -165,26 +174,40 @@ list_books () {
   awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
     $1, $2, $3, $4, $5, $6}' "$DATABASE"
 }
-dist_books_by_author() {
+list_books_by_author() {
   read -p "Enter the name of an author: " AUTHOR_CHOICE
+  if check_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
+    author_exists "$AUTHOR_CHOICE"; then
+    list_books_header
+    awk -F"|" -v author="$AUTHOR_CHOICE"\
+    '$3 ~ author {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+    $1, $2, $3, $4, $5, $6}' "$DATABASE"
+  fi
 }
 
 delete_book() {
   list_books
   echo
-  read -p "Enter the id of the book you wish to delete: " DELETE_CHOICE
+  while true; do
+    read -p "Enter the id of the book you wish to delete: " DELETE_CHOICE
+    if check_empty "$DELETE_CHOICE" && validate_id "$DELETE_CHOICE"; then
+      break
+    fi
+  done
   touch tmp   
   awk -F"|" -v id="$DELETE_CHOICE" '$1 != id' "$DATABASE" > tmp
   mv tmp "$DATABASE"
 }
+
 
 # Validation functions
 
 # check value entered is not blank
 check_empty () {
   if [[ -z "$1" ]]; then
-    # The warning is sent to stderr bc it is being called from a command
-    # substitution and would not print otherwise
+    # The warning is sent to stderr bc it would not be output otherwise
+    # see https://mywiki.wooledge.org/BashFAQ/002#:~:text=the%20example%20above%2C-,dig,-wrote%20output%20to (basically everything to stdout after the command 
+    # substitution gets captured by it. TLDR: Echo wont output to stdout if its # called by a fn executed within command substitution
     echo "Entries must not be blank. Please try again." >&2
     return 1
   fi
@@ -242,7 +265,18 @@ validate_pages () {
   fi
 }
 
-# program loop
+# search functions
+author_exists () {
+  FIND_ENTRIES=$(awk -F"|" -v STRING="$1" 'tolower($3) ~ tolower(STRING)' "$DATABASE")
+  if [[ -z "$FIND_ENTRIES" ]]; then
+    echo "The author $1 does not exist in the database" >&2
+    return 1
+  fi
+  return 0
+} 
+
+# program execution
+
 touch "$DATABASE"
 print_greeting
 print_title
