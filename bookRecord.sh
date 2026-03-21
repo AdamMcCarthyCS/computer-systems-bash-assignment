@@ -146,6 +146,9 @@ list_menu_dispatcher () {
       list_books
       pause
     ;; 
+    2)
+      list_books_with_string_in_title
+    ;;
     3)
       list_books_by_author
       pause
@@ -261,6 +264,26 @@ list_books () {
   awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
     $1, $2, $3, $4, $5, $6}' "$DATABASE"
 }
+
+list_books_with_string_in_title () {
+  local search_string search_results
+  read -p "Enter a string to search for in all titles: " search_string
+  if check_empty "$search_string" && validate_title_publisher "$search_string"; then
+    search_results=$(awk -F"|" -v value="$search_string"\
+        'tolower($2) ~ tolower(value)\
+        {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+    $1, $2, $3, $4, $5, $6}' "$DATABASE")
+
+    if [[ -z "$search_results" ]]; then
+      echo "No books found containing $search_string" >&2
+    else
+    list_books_header
+    echo "$search_results"
+    pause
+    fi
+  fi
+}
+
 list_books_by_author() {
   read -p "Enter the name of an author: " AUTHOR_CHOICE
   if check_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
@@ -343,6 +366,10 @@ list_contemporary_era () {
     list_books_header
     echo "$BOOKS_CONTEMPORARY" 
   fi
+}
+
+list_books_below_page_count () {
+  
 }
 
 # DELETE FUNCTIONS
