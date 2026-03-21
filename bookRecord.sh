@@ -104,7 +104,7 @@ main_menu_dispatcher () {
         list_menu_dispatcher
       ;;
       4)
-        delete_book
+        delete_menu_dispatcher
       ;;
       X)
         break
@@ -136,7 +136,7 @@ add_book_dispatcher() {
  done
 }
 
-list_menu_dispatcher() {
+list_menu_dispatcher () {
   while true; do
     print_list_menu
     read -p "Enter integer option (or M to return to main menu): " LIST_CHOICE
@@ -162,6 +162,31 @@ list_menu_dispatcher() {
     esac
  done
  }
+
+delete_menu_dispatcher () {
+  while true; do
+    print_delete_menu 
+    read -p "Enter integer option (or M to return to main menu): " DELETE_CHOICE
+    
+    case "$DELETE_CHOICE" in
+    1)
+      delete_by_id
+      pause
+    ;;
+    2)
+      delete_all
+      pause
+    ;;
+    M)
+      break
+    ;;
+    *)
+      echo "$DELETE_CHOICE is not a valid option. Please try again..."
+      pause
+    ;;
+   esac
+ done
+}
 
 # crud functions
 
@@ -322,7 +347,7 @@ list_contemporary_era () {
 
 # DELETE FUNCTIONS
 
-delete_book() {
+delete_by_id () {
   list_books
   echo
   while true; do
@@ -331,11 +356,42 @@ delete_book() {
       break
     fi
   done
-  touch tmp   
-  awk -F"|" -v id="$DELETE_CHOICE" '$1 != id' "$DATABASE" > tmp
-  mv tmp "$DATABASE"
+  if id_exists "$DELETE_CHOICE"; then
+  local title author reply
+  # confirm deletion using a prompt
+  title=$(awk -F"|" -v id="$DELETE_CHOICE" '$1 == id {print $2}' "$DATABASE")
+  author=$(awk -F"|" -v id="$DELETE_CHOICE" '$1 == id {print $3}' "$DATABASE")
+  read -p "Are you sure you want to delete $title by $author? (y/n): " reply
+  # check the id exists and if it does check the user wants to delete the book
+    if [[ "${reply,,}" == "y" ]]; then
+      # perform the deletion by replacing the database  with a copy that has that
+      # entry removed
+      touch tmp   
+      awk -F"|" -v id="$DELETE_CHOICE" '$1 != id' "$DATABASE" > tmp
+      mv tmp "$DATABASE"
+      echo
+      echo "$title deleted"
+    else
+      echo
+      echo "Deletion cancelled"
+    fi
+  fi
 }
 
+delete_all () {
+  local reply
+  read -p "You are about to delete the entire database. Are you sure? (y/n): " reply 
+  # Here I use the parameter expansion method to convert a string to lowercase
+  # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html#:~:text=%24%7Bparameter%2C%2Cpattern%7D
+  if [[ "${reply,,}" == "y" ]]; then
+    touch tmpdb && mv tmpdb "$DATABASE"
+    echo # newline to aid reading the outcome of the deletion operation
+    echo "The database $DATABASE has been cleared"
+  else
+    echo # newline to aid reading the outcome of the deletion operation
+    echo "Deletion aborted"
+  fi
+}
 
 # Validation functions
 
@@ -411,6 +467,16 @@ author_exists () {
   fi
   return 0
 } 
+
+id_exists() {
+  local id
+  id=$(awk -F"|" -v book_id="$1" '$1 == book_id {print $1}' "$DATABASE")
+  if [[ -z "$id" ]]; then
+    echo "No book with the ID $1 exists in the database" >&2
+    return 1
+  fi
+  return 0
+}
 
 # program execution
 

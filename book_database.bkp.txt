@@ -1,6 +1,7 @@
 1|Pride and Prejudice|Jane Austen|1813|432|T. Egerton, Whitehall
 2|Robinson Crusoe|Daniel Defoe|1719|374|W. Taylor
 3|The Catcher in the Rye|J.D. Salinger|1951|421|Little, Brown and Company
+4|Harry Potter and the Philosopher's Stone|J.K. Rowling|1997|442|Bloomsbury
 5|Gulliver's Travels|Jonathan Swift|1726|378|Benjamin Motte
 6|Moby-Dick|Herman Melville|1851|635|Harper & Brothers
 7|Jane Eyre|Charlotte Bronte|1847|507|Smith, Elder & Co.
