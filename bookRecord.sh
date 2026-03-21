@@ -32,33 +32,63 @@ print_goodbye () {
 }
 
 print_main_menu () {
+  echo "========="
+  echo "MAIN MENU"
+  echo "========="
   echo "Please choose an option by entering an integer:"
   echo "1) Add a book"
   echo "2) List all books"
   echo "3) Update a book"
   echo "4) Remove a book"
-  echo "5) Exit the program"
+  echo "----------------"
+  echo "X) Exit the program"
+  echo
+}
+
+print_add_menu () {
+  echo "========"
+  echo "ADD MENU"
+  echo "========"
+  echo "1) Add a book"
+  echo "-------------"
+  echo "M) Exit to the main menu"
   echo
 }
 
 print_list_menu () {
-  echo "Please choose an option by entering an integer: "
+  echo "========="
+  echo "LIST MENU"
+  echo "========="
   echo "1) List all books"
-  echo "2) List all books by author"
-  echo "3) List all books before a year"
-  echo "4) List all books after a year"
-  echo "5) List all books below a certain page count"
-  echo "0) Exit to the main menu"
+  echo "2) List all books whose titles contain a string"
+  echo "3) List all books by author"
+  echo "4) List all books before a year"
+  echo "5) List all books after a year"
+  echo "6) List all books below a certain page count"
+  echo "--------------------------------------------"
+  echo "M) Exit to the main menu"
+  echo
+}
+
+print_delete_menu () {
+  echo "==========="
+  echo "DELETE MENU"
+  echo "==========="
+  echo "1) Delete a book using its ID"
+  echo "2) Delete all books"
+  echo "-------------------"
+  echo "M) Exit to the main menu"
+  echo
 }
 
 main_menu_dispatcher () {
  
   while true; do
     print_main_menu
-    read -p "Please enter a choice: " CHOICE
+    read -p "Enter integer option (or X to exit the program): " CHOICE
     case "$CHOICE" in
       1)
-        add_book
+        add_book_dispatcher
       ;;
       2)
         list_menu_dispatcher
@@ -66,32 +96,51 @@ main_menu_dispatcher () {
       4)
         delete_book
       ;;
-      5)
+      X)
         break
       ;;
       *)
-      echo "$CHOICE is not a valid option. please try again..."
+      echo "$CHOICE is not a valid option. Please try again..."
       pause
       ;;
     esac
   done
 }
 
+add_book_dispatcher() {
+  while true; do
+    print_add_menu
+    read -p "Enter integer option (or M to return to main menu): " ADD_CHOICE
+
+    case "$ADD_CHOICE" in
+    1) 
+      add_book
+    ;;
+    M) 
+      break
+    ;;
+    *) 
+      echo "$ADD_CHOICE is not a valid option. Please try again..."
+    ;;
+    esac
+ done
+}
+
 list_menu_dispatcher() {
   while true; do
     print_list_menu
-    read -p "Please choose a menu option by entering an integer: " LIST_CHOICE
+    read -p "Enter integer option (or M to return to main menu): " LIST_CHOICE
 
     case "$LIST_CHOICE" in
     1)
       list_books
       pause
     ;; 
-    2) 
+    3)
       list_books_by_author
       pause
     ;;
-    0) 
+    M) 
       break
     ;;
     *)
@@ -141,7 +190,7 @@ prompt_book_fields () {
     fi
   done
 
-  printf '%s|%s|%s|%s|%s|%s' \
+  printf '%s|%s|%s|%s|%s' \
   "$BOOK_TITLE" "$BOOK_AUTHOR" "$PUBLICATION_YEAR" "$BOOK_PAGE_COUNT" "$BOOK_PUBLISHER"
 }
 

@@ -35,4 +35,3 @@
 37|It|Stephen King|1986|1138|Viking Press
 38|Dune|Frank Herbert|1965|412|Chilton Books
 39|The Handmaid's Tale|Margaret Atwood|1985|311|McClelland and Stewart
-40|Fdfsdsf|Adds|2000|192|jfdslkjds|
