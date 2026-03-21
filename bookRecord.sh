@@ -233,131 +233,153 @@ prompt_book_fields () {
 
   printf '%s|%s|%s|%s|%s' \
   "$BOOK_TITLE" "$BOOK_AUTHOR" "$PUBLICATION_YEAR" "$BOOK_PAGE_COUNT" "$BOOK_PUBLISHER"
+  echo
 }
 
 # Create book functions
 
 add_book () {
+  local book_details book_count line confirm_add
   echo "Enter book details:" 
   BOOK_DETAILS=$(prompt_book_fields)
   BOOK_COUNT=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
   LINE="$(($BOOK_COUNT + 1))|$BOOK_DETAILS"
-  # Used <<< (here string) which allows you to pass a string to stdin where a 
-  # filename is expected (https://tldp.org/LDP/abs/html/x17837.html [see first example])
-  awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$BOOK_DETAILS"
-  echo "$LINE" >> "$DATABASE"
-}
+  
+  # if the book is not unique then exit the adding process
+  title=$(awk -F"|" '{print $2}' <<< "$LINE")
+  author=$(awk -F"|" '{print $3}' <<< "$LINE")
+  if book_exists "$title" "$author"; then
+    echo "The book $title by $author is already in the database! Exiting operation" 
+    pause
+    return 1
+  fi
+  
+  # if the book is a new entry display it and confirm user wants it added
+  list_books_header
+  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+    $1, $2, $3, $4, $5, $6}' <<< "$LINE"
+  echo
+  read -p "Add this record to the database? (y/n): " confirm_add
+  if [[ {confirm_add,,} == "y" ]]; then
+    # Used <<< (here string) which allows you to pass a string to stdin where a 
+    # filename is expected (https://tldp.org/LDP/abs/html/x17837.html [see first example])
+    echo "$LINE" >> "$DATABASE"
+    awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$BOOK_DETAILS"
+    else
+      echo "Operation cancelled"
+  fi
+  }
 
 # List books functions
 
 # This function prints the header for all listing operations. I separated it from
 # each fuction rather than rewriting it several times within all the list functions
-list_books_header () {
-  printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
-    "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher" 
-  printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
-    "--"  "-----"  "------" "----"  "-----"  "---------"
-}
+  list_books_header () {
+    printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
+      "ID"  "Title"  "Author" "Year"  "Pages"  "Publisher" 
+    printf "%-3s %-30s %-20s %-6s %-5s %s\n"\
+      "--"  "-----"  "------" "----"  "-----"  "---------"
+  }
 
-list_books () {
-  list_books_header
-  awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
-    $1, $2, $3, $4, $5, $6}' "$DATABASE"
-}
-
-list_books_with_string_in_title () {
-  local search_string search_results
-  read -p "Enter a string to search for in all titles: " search_string
-  if check_empty "$search_string" && validate_title_publisher "$search_string"; then
-    search_results=$(awk -F"|" -v value="$search_string"\
-        'tolower($2) ~ tolower(value)\
-        {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
-    $1, $2, $3, $4, $5, $6}' "$DATABASE")
-
-    if [[ -z "$search_results" ]]; then
-      echo "No books found containing $search_string" >&2
-    else
+  list_books () {
     list_books_header
-    echo "$search_results"
-    pause
+    awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+      $1, $2, $3, $4, $5, $6}' "$DATABASE"
+  }
+
+  list_books_with_string_in_title () {
+    local search_string search_results
+    read -p "Enter a string to search for in all titles: " search_string
+    if check_empty "$search_string" && validate_title_publisher "$search_string"; then
+      search_results=$(awk -F"|" -v value="$search_string"\
+          'tolower($2) ~ tolower(value)\
+          {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+      $1, $2, $3, $4, $5, $6}' "$DATABASE")
+
+      if [[ -z "$search_results" ]]; then
+        echo "No books found containing $search_string" >&2
+      else
+      list_books_header
+      echo "$search_results"
+      pause
+      fi
     fi
-  fi
-}
+  }
 
-list_books_by_author() {
-  read -p "Enter the name of an author: " AUTHOR_CHOICE
-  if check_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
-    author_exists "$AUTHOR_CHOICE"; then
-    list_books_header
-    awk -F"|" -v author="$AUTHOR_CHOICE"\
-    '$3 ~ author {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
-    $1, $2, $3, $4, $5, $6}' "$DATABASE"
-  fi
-}
+  list_books_by_author() {
+    read -p "Enter the name of an author: " AUTHOR_CHOICE
+    if check_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
+      author_exists "$AUTHOR_CHOICE"; then
+      list_books_header
+      awk -F"|" -v author="$AUTHOR_CHOICE"\
+      '$3 ~ author {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+      $1, $2, $3, $4, $5, $6}' "$DATABASE"
+    fi
+  }
 
-list_books_by_era_dispatcher () {
-  while true; do
-    print_list_by_era_menu
-    read -p "Enter integer option (or L to return to list menu): " ERA_CHOICE
-    
-    case "$ERA_CHOICE" in
-    1)
-      list_early_modern_era
-    ;;
-    2) 
-      list_victorian_era
-    ;;
-    3)
-      list_modern_era
-    ;;
-    4) 
-      list_contemporary_era
-    ;;
-    L)
-      break
-    ;;
-    esac
- done
-}
+  list_books_by_era_dispatcher () {
+    while true; do
+      print_list_by_era_menu
+      read -p "Enter integer option (or L to return to list menu): " ERA_CHOICE
+      
+      case "$ERA_CHOICE" in
+      1)
+        list_early_modern_era
+      ;;
+      2) 
+        list_victorian_era
+      ;;
+      3)
+        list_modern_era
+      ;;
+      4) 
+        list_contemporary_era
+      ;;
+      L)
+        break
+      ;;
+      esac
+   done
+  }
 
-list_early_modern_era () {
-  BOOKS_EARLY_MODERN=$(awk -F"|" '$4 < 1800\
-  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
-  "$DATABASE")
-  if [[ -z "$BOOKS_EARLY_MODERN" ]]; then
-    echo "No books from early modern era found." >&2
-  else
-    list_books_header
-    echo "$BOOKS_EARLY_MODERN" 
-  fi 
-} 
+  list_early_modern_era () {
+    BOOKS_EARLY_MODERN=$(awk -F"|" '$4 < 1800\
+    {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+    "$DATABASE")
+    if [[ -z "$BOOKS_EARLY_MODERN" ]]; then
+      echo "No books from early modern era found." >&2
+    else
+      list_books_header
+      echo "$BOOKS_EARLY_MODERN" 
+    fi 
+  } 
 
-list_victorian_era () {
-  BOOKS_VICTORIAN=$(awk -F"|" '$4 >= 1800 && $4 < 1900\
-  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
-  "$DATABASE")
-  if [[ -z "$BOOKS_VICTORIAN" ]]; then
-    echo "No books from early modern era found." >&2
-  else
-    list_books_header
-    echo "$BOOKS_VICTORIAN"
-  fi
-}
+  list_victorian_era () {
+    BOOKS_VICTORIAN=$(awk -F"|" '$4 >= 1800 && $4 < 1900\
+    {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+    "$DATABASE")
+    if [[ -z "$BOOKS_VICTORIAN" ]]; then
+      echo "No books from early modern era found." >&2
+    else
+      list_books_header
+      echo "$BOOKS_VICTORIAN"
+    fi
+  }
 
-list_modern_era () {
-  BOOKS_MODERN=$(awk -F"|" '$4 >= 1900 && $4 < 2000\
-  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
-  "$DATABASE")
-  if [[ -z "$BOOKS_MODERN" ]]; then
-    echo "No books from early modern era found." >&2
-  else
-    list_books_header
-    echo "$BOOKS_MODERN" 
-  fi
-}
+  list_modern_era () {
+    BOOKS_MODERN=$(awk -F"|" '$4 >= 1900 && $4 < 2000\
+    {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+    "$DATABASE")
+    if [[ -z "$BOOKS_MODERN" ]]; then
+      echo "No books from early modern era found." >&2
+    else
+      list_books_header
+      echo "$BOOKS_MODERN" 
+    fi
+  }
 
-list_contemporary_era () {
-  BOOKS_CONTEMPORARY=$(awk -F"|" '$4 > 2000\
+  list_contemporary_era () {
+    BOOKS_CONTEMPORARY=$(awk -F"|" '$4 > 2000\
   {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
   "$DATABASE")
   if [[ -z "$BOOKS_CONTEMPORARY" ]]; then
@@ -368,10 +390,8 @@ list_contemporary_era () {
   fi
 }
 
-list_books_below_page_count () {
+# list_books_below_page_count () {
   
-}
-
 # DELETE FUNCTIONS
 
 delete_by_id () {
@@ -485,7 +505,7 @@ validate_pages () {
   fi
 }
 
-# search functions
+# Helper functions
 author_exists () {
   FIND_ENTRIES=$(awk -F"|" -v STRING="$1" 'tolower($3) ~ tolower(STRING)' "$DATABASE")
   if [[ -z "$FIND_ENTRIES" ]]; then
@@ -500,6 +520,16 @@ id_exists() {
   id=$(awk -F"|" -v book_id="$1" '$1 == book_id {print $1}' "$DATABASE")
   if [[ -z "$id" ]]; then
     echo "No book with the ID $1 exists in the database" >&2
+    return 1
+  fi
+  return 0
+}
+
+book_exists () {
+  local search_result
+  search_result=$(awk -F"|" -v title="$1" -v author="$2"\
+      'title == $2 && author == $3 {print $0}' "$DATABASE")
+  if [[ -z "$search_result" ]]; then
     return 1
   fi
   return 0
