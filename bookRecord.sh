@@ -62,11 +62,21 @@ print_list_menu () {
   echo "1) List all books"
   echo "2) List all books whose titles contain a string"
   echo "3) List all books by author"
-  echo "4) List all books before a year"
-  echo "5) List all books after a year"
-  echo "6) List all books below a certain page count"
+  echo "4) List books by era"
+  echo "5) List all books below a certain page count"
   echo "--------------------------------------------"
   echo "M) Exit to the main menu"
+  echo
+}
+
+print_list_by_era_menu () {
+  echo "==========="
+  echo "LIST BY ERA"
+  echo "==========="
+  echo "1) Early modern era (1500-1800)"
+  echo "2) Victorian era (1800-1900)"
+  echo "3) Modern era (1900-2000)"
+  echo "4) Contemporary era (2000-present)"
   echo
 }
 
@@ -139,6 +149,9 @@ list_menu_dispatcher() {
     3)
       list_books_by_author
       pause
+    ;;
+    4)
+      list_books_by_era_dispatcher
     ;;
     M) 
       break
@@ -233,6 +246,81 @@ list_books_by_author() {
     $1, $2, $3, $4, $5, $6}' "$DATABASE"
   fi
 }
+
+list_books_by_era_dispatcher () {
+  while true; do
+    print_list_by_era_menu
+    read -p "Enter integer option (or L to return to list menu): " ERA_CHOICE
+    
+    case "$ERA_CHOICE" in
+    1)
+      list_early_modern_era
+    ;;
+    2) 
+      list_victorian_era
+    ;;
+    3)
+      list_modern_era
+    ;;
+    4) 
+      list_contemporary_era
+    ;;
+    L)
+      break
+    ;;
+    esac
+ done
+}
+
+list_early_modern_era () {
+  BOOKS_EARLY_MODERN=$(awk -F"|" '$4 < 1800\
+  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+  "$DATABASE")
+  if [[ -z "$BOOKS_EARLY_MODERN" ]]; then
+    echo "No books from early modern era found." >&2
+  else
+    list_books_header
+    echo "$BOOKS_EARLY_MODERN" 
+  fi 
+} 
+
+list_victorian_era () {
+  BOOKS_VICTORIAN=$(awk -F"|" '$4 >= 1800 && $4 < 1900\
+  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+  "$DATABASE")
+  if [[ -z "$BOOKS_VICTORIAN" ]]; then
+    echo "No books from early modern era found." >&2
+  else
+    list_books_header
+    echo "$BOOKS_VICTORIAN"
+  fi
+}
+
+list_modern_era () {
+  BOOKS_MODERN=$(awk -F"|" '$4 >= 1900 && $4 < 2000\
+  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+  "$DATABASE")
+  if [[ -z "$BOOKS_MODERN" ]]; then
+    echo "No books from early modern era found." >&2
+  else
+    list_books_header
+    echo "$BOOKS_MODERN" 
+  fi
+}
+
+list_contemporary_era () {
+  BOOKS_CONTEMPORARY=$(awk -F"|" '$4 > 2000\
+  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+  "$DATABASE")
+  if [[ -z "$BOOKS_CONTEMPORARY" ]]; then
+    echo "No books from early modern era found." >&2
+  else
+    list_books_header
+    echo "$BOOKS_CONTEMPORARY" 
+  fi
+}
+
+# DELETE FUNCTIONS
 
 delete_book() {
   list_books
