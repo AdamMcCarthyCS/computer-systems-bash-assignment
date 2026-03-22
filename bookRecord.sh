@@ -35,11 +35,10 @@ print_main_menu () {
   echo "========="
   echo "MAIN MENU"
   echo "========="
-  echo "Please choose an option by entering an integer:"
-  echo "1) Add a book"
-  echo "2) List all books"
-  echo "3) Update a book"
-  echo "4) Remove a book"
+  echo "1) Add books" 
+  echo "2) List books"
+  echo "3) Update books"
+  echo "4) Remove books"
   echo "----------------"
   echo "X) Exit the program"
   echo
@@ -69,6 +68,7 @@ print_list_menu () {
   echo
 }
 
+
 print_list_by_era_menu () {
   echo "==========="
   echo "LIST BY ERA"
@@ -96,6 +96,8 @@ main_menu_dispatcher () {
   while true; do
     print_main_menu
     read -p "Enter integer option (or X to exit the program): " CHOICE
+    echo
+    
     case "$CHOICE" in
       1)
         add_book_dispatcher
@@ -121,12 +123,14 @@ add_book_dispatcher() {
   while true; do
     print_add_menu
     read -p "Enter integer option (or M to return to main menu): " ADD_CHOICE
+    echo
 
     case "$ADD_CHOICE" in
     1) 
       add_book
     ;;
     M) 
+      echo
       break
     ;;
     *) 
@@ -241,6 +245,7 @@ prompt_book_fields () {
 add_book () {
   local book_details book_count line confirm_add
   echo "Enter book details:" 
+  echo "-------------------"
   BOOK_DETAILS=$(prompt_book_fields)
   BOOK_COUNT=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
   LINE="$(($BOOK_COUNT + 1))|$BOOK_DETAILS"
@@ -255,19 +260,21 @@ add_book () {
   fi
   
   # if the book is a new entry display it and confirm user wants it added
+  echo
   list_books_header
   awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
     $1, $2, $3, $4, $5, $6}' <<< "$LINE"
   echo
   read -p "Add this record to the database? (y/n): " confirm_add
-  if [[ {confirm_add,,} == "y" ]]; then
+  if [[ ${confirm_add,,} == "y" ]]; then
     # Used <<< (here string) which allows you to pass a string to stdin where a 
     # filename is expected (https://tldp.org/LDP/abs/html/x17837.html [see first example])
     echo "$LINE" >> "$DATABASE"
     awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$BOOK_DETAILS"
-    else
+  else
       echo "Operation cancelled"
   fi
+  pause
   }
 
 # List books functions
