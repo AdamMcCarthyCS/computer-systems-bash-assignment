@@ -6,26 +6,31 @@
 DATABASE="book_database.txt"
 # menu functions
 
+# function to pause allowing user to read output
 pause () {
   read -n1 -sp "Press any key to continue..."
   printf "\n\n"
 }
 
+# prints titles on startup of program
 print_title () {
   echo "Book Record Manager"
   echo "==================="
   echo
 }
 
+# prints greeting date and time on startup of program
 print_greeting () {
-  TODAY=$(date "+%d-%m-%Y")
-  CURRENT_TIME=$(date "+%r")
+  local today current_time
+  today=$(date "+%d-%m-%y")
+  current_time=$(date "+%r")
   echo "--------------------------------------------------------------------"
-  echo "Welcome to the book record manager. It is $CURRENT_TIME on $TODAY."
+  echo "Welcome to the book record manager. It is $current_time on $today."
   echo "--------------------------------------------------------------------"
   echo
 }
 
+# when program is exited this message is printed
 print_goodbye () {
   echo "You have exited the program."
   echo "Thank you for using the book record manager. Goodbye!"
@@ -94,8 +99,10 @@ print_delete_menu () {
 main_menu_dispatcher () {
  
   while true; do
-    local choice
-
+    # keep variable scope within function
+    local choice 
+    
+    # read in user option and if valid call menu function
     print_main_menu
     read -p "Enter integer option (or X to exit the program): " choice
     if ! check_not_empty "$choice"; then
@@ -118,6 +125,7 @@ main_menu_dispatcher () {
         break
       ;;
       *)
+      # soft validation of user choice
       echo "$choice is not a valid option. Please try again..."
       pause
       ;;
@@ -127,8 +135,10 @@ main_menu_dispatcher () {
 
 add_book_dispatcher() {
   while true; do
+    # keep variable scope within function
     local add_choice
       
+    # read user option and validate choice, then call menu function
     print_add_menu
     read -p "Enter integer option (or M to return to main menu): " add_choice
     if ! check_not_empty "$add_choice"; then
@@ -154,8 +164,10 @@ add_book_dispatcher() {
 
 list_menu_dispatcher () {
   while true; do
+    # keep variable scope within function
     local list_choice
-
+    
+    # read user option and validate choice, then call menu function
     print_list_menu
     read -p "Enter integer option (or M to return to main menu): " list_choice
     if ! check_not_empty "$list_choice"; then
@@ -186,6 +198,7 @@ list_menu_dispatcher () {
       break
     ;;
     *)
+      # soft validation of user choice
       echo "$list_choice" is not a valid option
       pause
     esac
@@ -194,8 +207,10 @@ list_menu_dispatcher () {
 
 delete_menu_dispatcher () {
   while true; do
+    # keep variable scope within function
     local delete_choice
-
+    
+    # read user choice and validate option, then call menu function
     print_delete_menu 
     read -p "Enter integer option (or M to return to main menu): " delete_choice
     if ! check_not_empty "$delete_choice"; then
@@ -229,43 +244,55 @@ delete_menu_dispatcher () {
 # This prompts and validates user input. It is separated as it will be reused
 # for updating books, so the bash is "DRY".
 prompt_book_fields () {
+
+  # read in a valid book title
   while true; do
-    read -p "Enter the title of the book: " BOOK_TITLE
-    if check_not_empty "$BOOK_TITLE" && validate_title_publisher "$BOOK_TITLE"; then
+    local book_title
+    read -p "Enter the title of the book: " book_title
+    if check_not_empty "$book_title" && validate_title_publisher "$book_title"; then
+      break
+    fi
+  done
+  
+  # read in a valid book author
+  while true; do
+    local book_author
+    read -p "Enter the author of the book: " book_author
+    if check_not_empty "$book_author" && validate_author_name "$book_author"; then
       break
     fi
   done
 
+  # read in a valid publication year
   while true; do
-    read -p "Enter the author of the book: " BOOK_AUTHOR
-    if check_not_empty "$BOOK_AUTHOR" && validate_author_name "$BOOK_AUTHOR"; then
+    local publication_year
+    read -p "Enter the year the book was published: " publication_year
+    if check_not_empty "$publication_year" && validate_year "$publication_year"; then
       break
     fi
   done
 
+  # read in a valid book page count
   while true; do
-    read -p "Enter the year the book was published: " PUBLICATION_YEAR
-    if check_not_empty "$PUBLICATION_YEAR" && validate_year "$PUBLICATION_YEAR"; then
+    local book_page_count 
+    read -p "Enter the number of pages in the book: " book_page_count
+    if check_not_empty "$book_page_count" && validate_pages "$book_page_count"; then
       break
     fi
   done
 
+  # read in a valid book publisher
   while true; do
-    read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
-    if check_not_empty "$BOOK_PAGE_COUNT" && validate_pages "$BOOK_PAGE_COUNT"; then
+    local book_publisher  
+    read -p "Enter the publisher of the book: " book_publisher
+    if check_not_empty "$book_publisher" && validate_title_publisher "$book_publisher"; then
       break
     fi
   done
 
-  while true; do
-    read -p "Enter the publisher of the book: " BOOK_PUBLISHER
-    if check_not_empty "$BOOK_PUBLISHER" && validate_title_publisher "$BOOK_PUBLISHER"; then
-      break
-    fi
-  done
-
+  # format the collected fields for database with | separators
   printf '%s|%s|%s|%s|%s' \
-  "$BOOK_TITLE" "$BOOK_AUTHOR" "$PUBLICATION_YEAR" "$BOOK_PAGE_COUNT" "$BOOK_PUBLISHER"
+  "$book_title" "$book_author" "$publication_year" "$book_page_count" "$book_publisher"
   echo
 }
 
@@ -275,31 +302,39 @@ add_book () {
   local book_details book_count line confirm_add
   echo "Enter book details:" 
   echo "-------------------"
-  BOOK_DETAILS=$(prompt_book_fields)
-  BOOK_COUNT=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
-  LINE="$(($BOOK_COUNT + 1))|$BOOK_DETAILS"
+  # read in all the book fields by calling function prompt_book_fields and capture
+  # and store the output
+  book_details=$(prompt_book_fields)
+
+  # get the id of the last book in the database (largest id)
+  book_count=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
+
+  # add 1 to the largest id and add to book details for storing in database
+  line="$(($book_count + 1))|$book_details"
   
-  # if the book is not unique then exit the adding process
-  title=$(awk -F"|" '{print $2}' <<< "$LINE")
-  author=$(awk -F"|" '{print $3}' <<< "$LINE")
+  #check if the book is already in the database using title and author
+  # if it is already present then exit the adding process
+  title=$(awk -F"|" '{print $2}' <<< "$line")
+  author=$(awk -F"|" '{print $3}' <<< "$line")
   if book_exists "$title" "$author"; then
     echo "The book $title by $author is already in the database! Exiting operation" 
     pause
     return 1
   fi
   
-  # if the book is a new entry display it and confirm user wants it added
+  # if the book is a new entry display it and confirm user wants it added to the
+  # database
   echo
   list_books_header
   awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
-    $1, $2, $3, $4, $5, $6}' <<< "$LINE"
+    $1, $2, $3, $4, $5, $6}' <<< "$line"
   echo
   read -p "Add this record to the database? (y/n): " confirm_add
   if [[ ${confirm_add,,} == "y" ]]; then
     # Used <<< (here string) which allows you to pass a string to stdin where a 
     # filename is expected (https://tldp.org/LDP/abs/html/x17837.html [see first example])
-    echo "$LINE" >> "$DATABASE"
-    awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$BOOK_DETAILS"
+    echo "$line" >> "$DATABASE"
+    awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$book_details"
   else
       echo "Operation cancelled"
   fi
@@ -319,22 +354,30 @@ add_book () {
 
   list_books () {
     list_books_header
+    # list all entries in the database in a readable format matching
+    # the output of list_books_header function
     awk -F"|" '{printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
       $1, $2, $3, $4, $5, $6}' "$DATABASE"
   }
 
   list_books_with_string_in_title () {
     local search_string search_results
+
+    # read in a string to search book titles for
     read -p "Enter a string to search for in all titles: " search_string
+
+    # if the search string is valid for a title then find any matching rows
     if check_not_empty "$search_string" && validate_title_publisher "$search_string"; then
       search_results=$(awk -F"|" -v value="$search_string"\
           'tolower($2) ~ tolower(value)\
           {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
       $1, $2, $3, $4, $5, $6}' "$DATABASE")
 
+      # if there are no matching rows then inform user and
       if [[ -z "$search_results" ]]; then
         echo "No books found containing $search_string" >&2
       else
+      # if there are matching rows then print them in readable format
       list_books_header
       echo "$search_results"
       pause
@@ -343,25 +386,30 @@ add_book () {
   }
 
   list_books_by_author() {
-    read -p "Enter the name of an author: " AUTHOR_CHOICE
+    local author_choice
+    # read in an author name from the user
+    read -p "Enter the name of an author: " author_choice
     echo
 
-    if check_not_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
-      author_exists "$AUTHOR_CHOICE"; then
+    # if a valid author name is entered then output all books matching that author
+    if check_not_empty "$author_choice" && validate_author_name "$author_choice" && \
+      author_exists "$author_choice"; then
       list_books_header
-      awk -F"|" -v author="$AUTHOR_CHOICE"\
-      '$3 ~ author {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
+      awk -F"|" -v author="$author_choice"\
+      'tolower($3) ~ tolower(author) \
+      {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
       $1, $2, $3, $4, $5, $6}' "$DATABASE"
     fi
   }
 
   list_books_by_era_dispatcher () {
     while true; do
+      local era_choice
       print_list_by_era_menu
       read -p "Enter integer option (or L to return to list menu): " ERA_CHOICE
       echo
 
-      case "$ERA_CHOICE" in
+      case "$era_choice" in
       1)
         list_early_modern_era
       ;;
@@ -382,50 +430,54 @@ add_book () {
   }
 
   list_early_modern_era () {
-    BOOKS_EARLY_MODERN=$(awk -F"|" '$4 < 1800\
+    local books_early_modern
+    books_early_modern=$(awk -F"|" '$4 < 1800\
     {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
     "$DATABASE")
-    if [[ -z "$BOOKS_EARLY_MODERN" ]]; then
+    if [[ -z "$books_early_modern" ]]; then
       echo "No books from early modern era found." >&2
     else
       list_books_header
-      echo "$BOOKS_EARLY_MODERN" 
+      echo "$books_early_modern" 
     fi 
   } 
 
   list_victorian_era () {
-    BOOKS_VICTORIAN=$(awk -F"|" '$4 >= 1800 && $4 < 1900\
+    local books_victorian
+    books_victorian=$(awk -F"|" '$4 >= 1800 && $4 < 1900\
     {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
     "$DATABASE")
-    if [[ -z "$BOOKS_VICTORIAN" ]]; then
+    if [[ -z "$books_victorian" ]]; then
       echo "No books from early modern era found." >&2
     else
       list_books_header
-      echo "$BOOKS_VICTORIAN"
+      echo "$books_victorian"
     fi
   }
 
   list_modern_era () {
-    BOOKS_MODERN=$(awk -F"|" '$4 >= 1900 && $4 < 2000\
+    local books_modern
+    books_modern=$(awk -F"|" '$4 >= 1900 && $4 < 2000\
     {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
     "$DATABASE")
-    if [[ -z "$BOOKS_MODERN" ]]; then
+    if [[ -z "$books_modern" ]]; then
       echo "No books from early modern era found." >&2
     else
       list_books_header
-      echo "$BOOKS_MODERN" 
+      echo "$books_modern" 
     fi
   }
 
   list_contemporary_era () {
-    BOOKS_CONTEMPORARY=$(awk -F"|" '$4 > 2000\
+    local books_contemporary
+    books_contemporary=$(awk -F"|" '$4 > 2000\
   {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
   "$DATABASE")
-  if [[ -z "$BOOKS_CONTEMPORARY" ]]; then
+  if [[ -z "$books_contemporary" ]]; then
     echo "No books from early modern era found." >&2
   else
     list_books_header
-    echo "$BOOKS_CONTEMPORARY" 
+    echo "$books_contemporary" 
   fi
 }
 
@@ -453,38 +505,46 @@ add_book () {
 # DELETE FUNCTIONS
 
 delete_by_id () {
+  # list all books so user can identify id of book they wish to delete
   list_books
   echo
+
+  # read in a valid id to check against the database
   while true; do
+    local delete_choice
     read -p "Enter the id of the book you wish to delete: " DELETE_CHOICE
-    if check_not_empty "$DELETE_CHOICE" && validate_id "$DELETE_CHOICE"; then
+    if check_not_empty "$delete_choice" && validate_id "$delete_choice"; then
       break
     fi
   done
-  if id_exists "$DELETE_CHOICE"; then
-  local title author reply
-  # confirm deletion using a prompt
-  title=$(awk -F"|" -v id="$DELETE_CHOICE" '$1 == id {print $2}' "$DATABASE")
-  author=$(awk -F"|" -v id="$DELETE_CHOICE" '$1 == id {print $3}' "$DATABASE")
-  read -p "Are you sure you want to delete $title by $author? (y/n): " reply
-  # check the id exists and if it does check the user wants to delete the book
-    if [[ "${reply,,}" == "y" ]]; then
-      # perform the deletion by replacing the database  with a copy that has that
-      # entry removed
-      touch tmp   
-      awk -F"|" -v id="$DELETE_CHOICE" '$1 != id' "$DATABASE" > tmp
-      mv tmp "$DATABASE"
-      echo
-      echo "$title deleted"
-    else
-      echo
-      echo "Deletion cancelled"
+
+  # check if id is in the database
+  if id_exists "$delete_choice"; then
+    local title author reply tmpDB
+    # confirm deletion by prompting user with book title and author 
+    title=$(awk -F"|" -v id="$delete_choice" '$1 == id {print $2}' "$DATABASE")
+    author=$(awk -F"|" -v id="$delete_choice" '$1 == id {print $3}' "$DATABASE")
+    read -p "Are you sure you want to delete $title by $author? (y/n): " reply
+      if [[ "${reply,,}" == "y" ]]; then
+        # perform the deletion by replacing the database with a copy that has that
+        # entry removed
+        touch tmpDB  
+        awk -F"|" -v id="$delete_choice" '$1 != id' "$DATABASE" > tmpDB
+        mv tmpDB "$DATABASE"
+        # confirm deletion to user
+        echo
+        echo "$title deleted"
+      else
+        # notify user deletion was aborted
+        echo
+        echo "Deletion cancelled"
     fi
   fi
 }
 
 delete_all () {
   local reply
+  # prompt user that they are about to delete entire database and cofirm
   read -p "You are about to delete the entire database. Are you sure? (y/n): " reply 
   # Here I use the parameter expansion method to convert a string to lowercase
   # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html#:~:text=%24%7Bparameter%2C%2Cpattern%7D
@@ -502,6 +562,7 @@ delete_all () {
 
 # check value entered is not blank
 check_not_empty () {
+  # check if the first argument is empty
   if [[ -z "$1" ]]; then
     # warnings sent to standard error to avoid being consumed by command substitutions
     echo "Entries must not be blank. Please try again." >&2
@@ -512,6 +573,7 @@ check_not_empty () {
 
 # allow ids starting from 1 and upto 9999
 validate_id () {
+  # check if the first argument starts with 1-9 and has up to 3 digits from 0-9 after
   if [[ $1 =~ ^[1-9][0-9]{0,3}$ ]]; then
     return 0
   else 
@@ -522,6 +584,7 @@ validate_id () {
 
 # allow multi word alphanumeric book titles and publisher names
 validate_title_publisher() {
+  # check if first argument is alphanumeric and allow multi word entries
   if [[ $1 =~ ^[[:alnum:]]+( [[:alnum:]]+)*$ ]]; then
     return 0
   else 
@@ -532,17 +595,22 @@ validate_title_publisher() {
 
 # allow authors names with middle initials
 validate_author_name () {
-  if [[ $1 =~ ^[A-Z][a-z]+( [A-Z]([a-z]+)?\.?)*$ ]]; then
+  # check the first argument is in title case and allow "." or ' in middle or surnames
+  # ^([A-Z]+(\.?)) - Can start with things like J.K. or just be Adam
+  # ( [A-Z](\'?)([A-Za-z]+)?\.?)*$ - Can be multi word and have middle initials or O'Brien
+  # or McCarthy 
+  if [[ $1 =~ ^([A-Z]+(\.?))+[a-z]+( [A-Z](\'?)([A-Za-z]+)?\.?)*$ ]]; then
     return 0
   else
     echo "The name must be title case and may contain middle initials." >&2
-      echo "Examples: Goethe, Lao Tzu, Booker T. Washington" >&2
+      echo "Examples: Goethe, Cormac McCarthy, Booker T. Washington Flannery O' Connor" >&2
     return 1
   fi
 }
 
 # allow years from 1500-2099
 validate_year () {
+  # starts with a 15-20 followed by any two digits taken from 0-9
   if [[ $1 =~ ^(1[5-9]|20)[0-9]{2}$ ]]; then
     return 0
   else
@@ -553,6 +621,7 @@ validate_year () {
 
 # allow books to have 10-9999 pages
 validate_pages () {
+  # starts with 1-9 followed by 1-3 digits from 0 to 9
   if [[ $1 =~ ^[1-9][0-9]{1,3}$ ]]; then
     return 0
   else
@@ -563,8 +632,11 @@ validate_pages () {
 
 # Helper functions
 author_exists () {
-  FIND_ENTRIES=$(awk -F"|" -v STRING="$1" 'tolower($3) ~ tolower(STRING)' "$DATABASE")
-  if [[ -z "$FIND_ENTRIES" ]]; then
+  local find_entries
+  # use lower case version of user entry compared to lower case version of database entry
+  find_entries=$(awk -F"|" -v string="$1" 'tolower($3) ~ tolower(string)' "$DATABASE")
+  # if no author with this name is in the database inform user
+  if [[ -z "$find_entries" ]]; then
     echo "The author $1 does not exist in the database" >&2
     return 1
   fi
@@ -575,6 +647,7 @@ id_exists() {
   local id
   id=$(awk -F"|" -v book_id="$1" '$1 == book_id {print $1}' "$DATABASE")
   if [[ -z "$id" ]]; then
+    # if no entry in the database has this id inform the user
     echo "No book with the ID $1 exists in the database" >&2
     return 1
   fi
@@ -583,6 +656,7 @@ id_exists() {
 
 book_exists () {
   local search_result
+  # check a lowercase version of the user title and the database titles
   search_result=$(awk -F"|" -v title="$1" -v author="$2"\
       'tolower(title) == tolower($2) && tolower(author) == tolower($3) {print $0}'\
       "$DATABASE")
@@ -594,7 +668,8 @@ book_exists () {
 
 # program execution
 
-touch "$DATABASE"
+# This section runs the program
+touch "$DATABASE" # create a database if it doesnt exist otherwise change timestamp
 print_greeting
 print_title
 main_menu_dispatcher
