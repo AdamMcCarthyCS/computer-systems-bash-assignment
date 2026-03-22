@@ -94,11 +94,17 @@ print_delete_menu () {
 main_menu_dispatcher () {
  
   while true; do
+    local choice
+
     print_main_menu
-    read -p "Enter integer option (or X to exit the program): " CHOICE
+    read -p "Enter integer option (or X to exit the program): " choice
+    if ! check_not_empty "$choice"; then
+      pause
+      continue
+    fi
     echo
     
-    case "$CHOICE" in
+    case "$choice" in
       1)
         add_book_dispatcher
       ;;
@@ -108,11 +114,11 @@ main_menu_dispatcher () {
       4)
         delete_menu_dispatcher
       ;;
-      X)
+      x)
         break
       ;;
       *)
-      echo "$CHOICE is not a valid option. Please try again..."
+      echo "$choice is not a valid option. Please try again..."
       pause
       ;;
     esac
@@ -121,11 +127,17 @@ main_menu_dispatcher () {
 
 add_book_dispatcher() {
   while true; do
+    local add_choice
+      
     print_add_menu
-    read -p "Enter integer option (or M to return to main menu): " ADD_CHOICE
+    read -p "Enter integer option (or M to return to main menu): " add_choice
+    if ! check_not_empty "$add_choice"; then
+      pause
+      continue
+    fi
     echo
 
-    case "$ADD_CHOICE" in
+    case "$add_choice" in
     1) 
       add_book
     ;;
@@ -134,7 +146,7 @@ add_book_dispatcher() {
       break
     ;;
     *) 
-      echo "$ADD_CHOICE is not a valid option. Please try again..."
+      echo "$add_choice is not a valid option. Please try again..."
     ;;
     esac
  done
@@ -142,10 +154,17 @@ add_book_dispatcher() {
 
 list_menu_dispatcher () {
   while true; do
-    print_list_menu
-    read -p "Enter integer option (or M to return to main menu): " LIST_CHOICE
+    local list_choice
 
-    case "$LIST_CHOICE" in
+    print_list_menu
+    read -p "Enter integer option (or M to return to main menu): " list_choice
+    if ! check_not_empty "$list_choice"; then
+      pause
+      continue
+    fi
+    echo
+
+    case "$list_choice" in
     1)
       list_books
       pause
@@ -160,11 +179,14 @@ list_menu_dispatcher () {
     4)
       list_books_by_era_dispatcher
     ;;
+    5)
+      list_books_below_page_count
+    ;;
     M) 
       break
     ;;
     *)
-      echo "$LIST_CHOICE" is not a valid option
+      echo "$list_choice" is not a valid option
       pause
     esac
  done
@@ -172,10 +194,17 @@ list_menu_dispatcher () {
 
 delete_menu_dispatcher () {
   while true; do
+    local delete_choice
+
     print_delete_menu 
-    read -p "Enter integer option (or M to return to main menu): " DELETE_CHOICE
-    
-    case "$DELETE_CHOICE" in
+    read -p "Enter integer option (or M to return to main menu): " delete_choice
+    if ! check_not_empty "$delete_choice"; then
+      pause
+      continue
+    fi
+    echo
+
+    case "$delete_choice" in
     1)
       delete_by_id
       pause
@@ -188,10 +217,10 @@ delete_menu_dispatcher () {
       break
     ;;
     *)
-      echo "$DELETE_CHOICE is not a valid option. Please try again..."
+      echo "$delete_choice is not a valid option. Please try again..."
       pause
     ;;
-   esac
+    esac
  done
 }
 
@@ -202,35 +231,35 @@ delete_menu_dispatcher () {
 prompt_book_fields () {
   while true; do
     read -p "Enter the title of the book: " BOOK_TITLE
-    if check_empty "$BOOK_TITLE" && validate_title_publisher "$BOOK_TITLE"; then
+    if check_not_empty "$BOOK_TITLE" && validate_title_publisher "$BOOK_TITLE"; then
       break
     fi
   done
 
   while true; do
     read -p "Enter the author of the book: " BOOK_AUTHOR
-    if check_empty "$BOOK_AUTHOR" && validate_author_name "$BOOK_AUTHOR"; then
+    if check_not_empty "$BOOK_AUTHOR" && validate_author_name "$BOOK_AUTHOR"; then
       break
     fi
   done
 
   while true; do
     read -p "Enter the year the book was published: " PUBLICATION_YEAR
-    if check_empty "$PUBLICATION_YEAR" && validate_year "$PUBLICATION_YEAR"; then
+    if check_not_empty "$PUBLICATION_YEAR" && validate_year "$PUBLICATION_YEAR"; then
       break
     fi
   done
 
   while true; do
     read -p "Enter the number of pages in the book: " BOOK_PAGE_COUNT
-    if check_empty "$BOOK_PAGE_COUNT" && validate_pages "$BOOK_PAGE_COUNT"; then
+    if check_not_empty "$BOOK_PAGE_COUNT" && validate_pages "$BOOK_PAGE_COUNT"; then
       break
     fi
   done
 
   while true; do
     read -p "Enter the publisher of the book: " BOOK_PUBLISHER
-    if check_empty "$BOOK_PUBLISHER" && validate_title_publisher "$BOOK_PUBLISHER"; then
+    if check_not_empty "$BOOK_PUBLISHER" && validate_title_publisher "$BOOK_PUBLISHER"; then
       break
     fi
   done
@@ -297,7 +326,7 @@ add_book () {
   list_books_with_string_in_title () {
     local search_string search_results
     read -p "Enter a string to search for in all titles: " search_string
-    if check_empty "$search_string" && validate_title_publisher "$search_string"; then
+    if check_not_empty "$search_string" && validate_title_publisher "$search_string"; then
       search_results=$(awk -F"|" -v value="$search_string"\
           'tolower($2) ~ tolower(value)\
           {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n",\
@@ -315,7 +344,9 @@ add_book () {
 
   list_books_by_author() {
     read -p "Enter the name of an author: " AUTHOR_CHOICE
-    if check_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
+    echo
+
+    if check_not_empty "$AUTHOR_CHOICE" && validate_author_name "$AUTHOR_CHOICE" && \
       author_exists "$AUTHOR_CHOICE"; then
       list_books_header
       awk -F"|" -v author="$AUTHOR_CHOICE"\
@@ -328,7 +359,8 @@ add_book () {
     while true; do
       print_list_by_era_menu
       read -p "Enter integer option (or L to return to list menu): " ERA_CHOICE
-      
+      echo
+
       case "$ERA_CHOICE" in
       1)
         list_early_modern_era
@@ -397,7 +429,26 @@ add_book () {
   fi
 }
 
-# list_books_below_page_count () {
+  list_books_below_page_count () {
+    local page_count results
+    while true; do
+      read -p "Enter the maxiumum number of pages: "  page_count
+      echo
+      if validate_pages "$page_count"; then
+        break
+      fi
+    done
+    results=$(awk -F"|" -v pages="$page_count" '$5 <= pages\
+  {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
+  "$DATABASE")
+
+    if [[ -z "$results" ]]; then
+      echo "There are no books less than $page_count pages"
+    else
+      list_books_header
+      echo "$results"
+    fi
+  }
   
 # DELETE FUNCTIONS
 
@@ -406,7 +457,7 @@ delete_by_id () {
   echo
   while true; do
     read -p "Enter the id of the book you wish to delete: " DELETE_CHOICE
-    if check_empty "$DELETE_CHOICE" && validate_id "$DELETE_CHOICE"; then
+    if check_not_empty "$DELETE_CHOICE" && validate_id "$DELETE_CHOICE"; then
       break
     fi
   done
@@ -450,11 +501,9 @@ delete_all () {
 # Validation functions
 
 # check value entered is not blank
-check_empty () {
+check_not_empty () {
   if [[ -z "$1" ]]; then
-    # The warning is sent to stderr bc it would not be output otherwise
-    # see https://mywiki.wooledge.org/BashFAQ/002#:~:text=the%20example%20above%2C-,dig,-wrote%20output%20to (basically everything to stdout after the command 
-    # substitution gets captured by it. TLDR: Echo wont output to stdout if its # called by a fn executed within command substitution
+    # warnings sent to standard error to avoid being consumed by command substitutions
     echo "Entries must not be blank. Please try again." >&2
     return 1
   fi
@@ -535,7 +584,8 @@ id_exists() {
 book_exists () {
   local search_result
   search_result=$(awk -F"|" -v title="$1" -v author="$2"\
-      'title == $2 && author == $3 {print $0}' "$DATABASE")
+      'tolower(title) == tolower($2) && tolower(author) == tolower($3) {print $0}'\
+      "$DATABASE")
   if [[ -z "$search_result" ]]; then
     return 1
   fi
