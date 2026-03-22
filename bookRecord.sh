@@ -42,8 +42,7 @@ print_main_menu () {
   echo "========="
   echo "1) Add books" 
   echo "2) List books"
-  echo "3) Update books"
-  echo "4) Remove books"
+  echo "3) Remove books"
   echo "----------------"
   echo "X) Exit the program"
   echo
@@ -118,10 +117,10 @@ main_menu_dispatcher () {
       2)
         list_menu_dispatcher
       ;;
-      4)
+      3)
         delete_menu_dispatcher
       ;;
-      x)
+      X)
         break
       ;;
       *)
@@ -157,6 +156,7 @@ add_book_dispatcher() {
     ;;
     *) 
       echo "$add_choice is not a valid option. Please try again..."
+      pause
     ;;
     esac
  done
@@ -199,8 +199,9 @@ list_menu_dispatcher () {
     ;;
     *)
       # soft validation of user choice
-      echo "$list_choice" is not a valid option
+      echo "$list_choice is not a valid option"
       pause
+    ;;
     esac
  done
  }
@@ -306,14 +307,19 @@ add_book () {
   # and store the output
   book_details=$(prompt_book_fields)
 
-  # get the id of the last book in the database (largest id)
-  book_count=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
+  # get the id of the last book in the database (largest id) or set initial book count
+  if [[ -z "$DATABASE" ]]; then
+    book_count=1
+  else
+    book_count=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
+  fi
 
   # add 1 to the largest id and add to book details for storing in database
   line="$(($book_count + 1))|$book_details"
   
   #check if the book is already in the database using title and author
   # if it is already present then exit the adding process
+  local title author
   title=$(awk -F"|" '{print $2}' <<< "$line")
   author=$(awk -F"|" '{print $3}' <<< "$line")
   if book_exists "$title" "$author"; then
@@ -334,7 +340,7 @@ add_book () {
     # Used <<< (here string) which allows you to pass a string to stdin where a 
     # filename is expected (https://tldp.org/LDP/abs/html/x17837.html [see first example])
     echo "$line" >> "$DATABASE"
-    awk -F"|" '{print "The book", $1, "by", $2, "was added"}' <<< "$book_details"
+    awk -F"|" '{print "The book", $2, "by", $3, "was added"}' <<< "$line"
   else
       echo "Operation cancelled"
   fi
@@ -406,7 +412,7 @@ add_book () {
     while true; do
       local era_choice
       print_list_by_era_menu
-      read -p "Enter integer option (or L to return to list menu): " ERA_CHOICE
+      read -p "Enter integer option (or L to return to list menu): " era_choice
       echo
 
       case "$era_choice" in
@@ -448,7 +454,7 @@ add_book () {
     {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
     "$DATABASE")
     if [[ -z "$books_victorian" ]]; then
-      echo "No books from early modern era found." >&2
+      echo "No books from early Victorian era found." >&2
     else
       list_books_header
       echo "$books_victorian"
@@ -461,7 +467,7 @@ add_book () {
     {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
     "$DATABASE")
     if [[ -z "$books_modern" ]]; then
-      echo "No books from early modern era found." >&2
+      echo "No books from the modern era found." >&2
     else
       list_books_header
       echo "$books_modern" 
@@ -470,11 +476,11 @@ add_book () {
 
   list_contemporary_era () {
     local books_contemporary
-    books_contemporary=$(awk -F"|" '$4 > 2000\
+    books_contemporary=$(awk -F"|" '$4 >= 2000\
   {printf "%-3s %-30.30s %-20.20s %-6s %-5s %.25s\n", $1, $2, $3, $4, $5, $6}'\
   "$DATABASE")
   if [[ -z "$books_contemporary" ]]; then
-    echo "No books from early modern era found." >&2
+    echo "No books from the contemporary era found." >&2
   else
     list_books_header
     echo "$books_contemporary" 
@@ -484,7 +490,7 @@ add_book () {
   list_books_below_page_count () {
     local page_count results
     while true; do
-      read -p "Enter the maxiumum number of pages: "  page_count
+      read -p "Enter the maximum number of pages: "  page_count
       echo
       if validate_pages "$page_count"; then
         break
@@ -512,7 +518,7 @@ delete_by_id () {
   # read in a valid id to check against the database
   while true; do
     local delete_choice
-    read -p "Enter the id of the book you wish to delete: " DELETE_CHOICE
+    read -p "Enter the id of the book you wish to delete: " delete_choice
     if check_not_empty "$delete_choice" && validate_id "$delete_choice"; then
       break
     fi
@@ -543,13 +549,13 @@ delete_by_id () {
 }
 
 delete_all () {
-  local reply
+  local reply tmpDB
   # prompt user that they are about to delete entire database and cofirm
   read -p "You are about to delete the entire database. Are you sure? (y/n): " reply 
   # Here I use the parameter expansion method to convert a string to lowercase
   # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html#:~:text=%24%7Bparameter%2C%2Cpattern%7D
   if [[ "${reply,,}" == "y" ]]; then
-    touch tmpdb && mv tmpdb "$DATABASE"
+    touch tmpDB && mv tmpDB "$DATABASE"
     echo # newline to aid reading the outcome of the deletion operation
     echo "The database $DATABASE has been cleared"
   else
@@ -603,7 +609,7 @@ validate_author_name () {
     return 0
   else
     echo "The name must be title case and may contain middle initials." >&2
-      echo "Examples: Goethe, Cormac McCarthy, Booker T. Washington Flannery O' Connor" >&2
+      echo "Examples: Goethe, Cormac McCarthy, Booker T. Washington Flannery O'Connor" >&2
     return 1
   fi
 }
