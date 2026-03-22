@@ -308,10 +308,9 @@ add_book () {
   book_details=$(prompt_book_fields)
 
   # get the id of the last book in the database (largest id) or set initial book count
-  if [[ -z "$DATABASE" ]]; then
-    book_count=1
-  else
-    book_count=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
+  book_count=$(tail -n1 "$DATABASE" | awk -F"|" '{print $1}')
+  if [[ -z "$book_count" ]]; then
+    book_count=0
   fi
 
   # add 1 to the largest id and add to book details for storing in database
@@ -430,6 +429,10 @@ add_book () {
       ;;
       L)
         break
+      ;;
+      *)
+        echo "$era_choice is not a valid option"
+        pause
       ;;
       esac
    done
