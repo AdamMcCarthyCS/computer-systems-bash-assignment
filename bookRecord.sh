@@ -54,7 +54,7 @@ print_add_menu () {
   echo "========"
   echo "1) Add a book"
   echo "-------------"
-  echo "M) Exit to the main menu"
+  echo "X) Exit to the main menu"
   echo
 }
 
@@ -68,7 +68,7 @@ print_list_menu () {
   echo "4) List books by era"
   echo "5) List all books below a certain page count"
   echo "--------------------------------------------"
-  echo "M) Exit to the main menu"
+  echo "X) Exit to the main menu"
   echo
 }
 
@@ -81,6 +81,8 @@ print_list_by_era_menu () {
   echo "2) Victorian era (1800-1900)"
   echo "3) Modern era (1900-2000)"
   echo "4) Contemporary era (2000-present)"
+  echo "----------------------------------"
+  echo "X) Exit to the list menu"
   echo
 }
 
@@ -91,7 +93,7 @@ print_delete_menu () {
   echo "1) Delete a book using its ID"
   echo "2) Delete all books"
   echo "-------------------"
-  echo "M) Exit to the main menu"
+  echo "X) Exit to the main menu"
   echo
 }
 
@@ -150,7 +152,7 @@ add_book_dispatcher() {
     1) 
       add_book
     ;;
-    M) 
+    X) 
       echo
       break
     ;;
@@ -194,7 +196,7 @@ list_menu_dispatcher () {
     5)
       list_books_below_page_count
     ;;
-    M) 
+    X) 
       break
     ;;
     *)
@@ -229,7 +231,7 @@ delete_menu_dispatcher () {
       delete_all
       pause
     ;;
-    M)
+    X)
       break
     ;;
     *)
@@ -427,7 +429,7 @@ add_book () {
       4) 
         list_contemporary_era
       ;;
-      L)
+      X)
         break
       ;;
       *)
@@ -446,8 +448,11 @@ add_book () {
     if [[ -z "$books_early_modern" ]]; then
       echo "No books from early modern era found." >&2
     else
+      echo "Early modern era books"
+      echo "----------------------"
       list_books_header
       echo "$books_early_modern" 
+      pause
     fi 
   } 
 
@@ -459,8 +464,11 @@ add_book () {
     if [[ -z "$books_victorian" ]]; then
       echo "No books from early Victorian era found." >&2
     else
+      echo "Victorian era books"
+      echo "-------------------"
       list_books_header
       echo "$books_victorian"
+      pause
     fi
   }
 
@@ -472,8 +480,11 @@ add_book () {
     if [[ -z "$books_modern" ]]; then
       echo "No books from the modern era found." >&2
     else
+      echo "Modern era books"
+      echo "----------------"
       list_books_header
       echo "$books_modern" 
+      pause
     fi
   }
 
@@ -485,8 +496,11 @@ add_book () {
   if [[ -z "$books_contemporary" ]]; then
     echo "No books from the contemporary era found." >&2
   else
+    echo "Contemporary era books"
+    echo "----------------------"
     list_books_header
     echo "$books_contemporary" 
+    pause
   fi
 }
 
