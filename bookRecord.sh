@@ -383,6 +383,7 @@ add_book () {
       # if there are no matching rows then inform user and
       if [[ -z "$search_results" ]]; then
         echo "No books found containing $search_string" >&2
+        pause
       else
       # if there are matching rows then print them in readable format
       list_books_header
@@ -519,9 +520,11 @@ add_book () {
 
     if [[ -z "$results" ]]; then
       echo "There are no books less than $page_count pages"
+      pause
     else
       list_books_header
       echo "$results"
+      pause
     fi
   }
   
@@ -607,11 +610,14 @@ validate_id () {
 
 # allow multi word alphanumeric book titles and publisher names
 validate_title_publisher() {
-  # check if first argument is alphanumeric and allow multi word entries
-  if [[ $1 =~ ^[[:alnum:]]+( [[:alnum:]]+)*$ ]]; then
+  # check if first argument is alphanumeric and allow multi word entries and 
+  # common symbols
+  if [[ $1 =~ ^[[:alnum:]][[:alnum:]\'\&.,:\ -]*$ ]]; then
     return 0
   else 
-    echo "The name must be alphanumeric and may contain spaces. Please try again." >&2
+    echo "The name must be alphanumeric and may contain spaces and the symbols: '&.,:-" >&2 
+    echo "Examples: Faber & Faber, O'Reilly Media, W.W. Norton"
+    echo "Please try again." >&2
     return 1
   fi
 }
@@ -619,14 +625,14 @@ validate_title_publisher() {
 # allow authors names with middle initials
 validate_author_name () {
   # check the first argument is in title case and allow "." or ' in middle or surnames
-  # ^([A-Z]+(\.?)) - Can start with things like J.K. or just be Adam
-  # ( [A-Z](\'?)([A-Za-z]+)?\.?)*$ - Can be multi word and have middle initials or O'Brien
-  # or McCarthy 
+  # ^([A-Z]+(\.?)) - Can start with things like J.K. or just be a simple two word name
+  # ( [A-Z](\'?)([A-Za-z]+)?\.?)*$ - Can be multi word and have middle initials or 
+  # or apostrophies
   if [[ $1 =~ ^([A-Z]+(\.?))+[a-z]+( [A-Z](\'?)([A-Za-z]+)?\.?)*$ ]]; then
     return 0
   else
-    echo "The name must be title case and may contain middle initials." >&2
-      echo "Examples: Goethe, Cormac McCarthy, Booker T. Washington Flannery O'Connor" >&2
+    echo "The name must be title case, multi-letter, and may contain middle initials." >&2
+    echo "Examples: Goethe, Cormac McCarthy, Booker T. Washington Flannery O'Connor" >&2
     return 1
   fi
 }
