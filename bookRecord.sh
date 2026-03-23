@@ -1,7 +1,8 @@
 #!/bin/bash
 # author: Adam McCarthy
 # version: 16/Feb/2026
-# program description: A CRUD program to store books and their details
+# program description: A program to store books which can add, delete and
+# list their details
 
 DATABASE="book_database.txt"
 # menu functions
@@ -625,10 +626,10 @@ validate_title_publisher() {
 # allow authors names with middle initials
 validate_author_name () {
   # check the first argument is in title case and allow "." or ' in middle or surnames
-  # ^([A-Z]+(\.?)) - Can start with things like J.K. or just be a simple two word name
-  # ( [A-Z](\'?)([A-Za-z]+)?\.?)*$ - Can be multi word and have middle initials or 
+  #  ^[A-Z][A-Za-z]*\.? - Can start with things like J.K. or just be a simple two word name
+  #   ( [A-Z][A-Za-z]*\.?)*$ Can be multi word and have middle initials or 
   # or apostrophies
-  if [[ $1 =~ ^([A-Z]+(\.?))+[a-z]+( [A-Z](\'?)([A-Za-z]+)?\.?)*$ ]]; then
+  if [[ $1 =~ ^[A-Z][A-Za-z]*\.?( [A-Z][A-Za-z\']*\.?)*$ ]]; then
     return 0
   else
     echo "The name must be title case, multi-letter, and may contain middle initials." >&2
