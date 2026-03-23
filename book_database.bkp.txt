@@ -1,0 +1,37 @@
+1|Pride and Prejudice|Jane Austen|1813|432|T. Egerton, Whitehall
+2|Robinson Crusoe|Daniel Defoe|1719|374|W. Taylor
+3|The Catcher in the Rye|J.D. Salinger|1951|421|Little, Brown and Company
+4|Harry Potter and the Philosopher's Stone|J.K. Rowling|1997|442|Bloomsbury
+5|Gulliver's Travels|Jonathan Swift|1726|378|Benjamin Motte
+6|Moby-Dick|Herman Melville|1851|635|Harper & Brothers
+7|Jane Eyre|Charlotte Bronte|1847|507|Smith, Elder & Co.
+8|The Hobbit|J.R.R. Tolkien|1937|310|George Allen & Unwin
+9|1984|George Orwell|1949|328|Secker & Warburg
+10|To Kill a Mockingbird|Harper Lee|1960|336|J.B. Lippincott & Co.
+11|The Great Gatsby|F. Scott Fitzgerald|1925|218|Charles Scribner's Sons
+12|Wuthering Heights|Emily Bronte|1847|416|Thomas Cautley Newby
+13|The Odyssey|Homer|1996|560|Penguin Classics
+14|War and Peace|Leo Tolstoy|1869|1225|The Russian Messenger
+15|Crime and Punishment|Fyodor Dostoevsky|1866|671|The Russian Messenger
+16|Brave New World|Aldous Huxley|1932|311|Chatto & Windus
+17|The Lord of the Rings|J.R.R. Tolkien|1954|1178|George Allen & Unwin
+18|Frankenstein|Mary Shelley|1818|280|Lackington, Hughes, Harding, Mavor & Jones
+19|The Chronicles of Narnia|C.S. Lewis|1956|767|Geoffrey Bles
+20|Don Quixote|Miguel de Cervantes|1605|863|Francisco de Robles
+21|The Brothers Karamazov|Fyodor Dostoevsky|1880|824|The Russian Messenger
+22|Anna Karenina|Leo Tolstoy|1877|864|The Russian Messenger
+23|Dracula|Bram Stoker|1897|418|Archibald Constable and Company
+24|The Picture of Dorian Gray|Oscar Wilde|1890|254|Ward, Lock and Company
+25|Les Miserables|Victor Hugo|1862|1463|A. Lacroix, Verboeckhoven & Cie
+26|Fahrenheit 451|Ray Bradbury|1953|249|Ballantine Books
+27|The Alchemist|Paulo Coelho|1988|208|HarperTorch
+28|The Da Vinci Code|Dan Brown|2003|489|Doubleday
+29|The Hunger Games|Suzanne Collins|2008|374|Scholastic Press
+30|The Girl with the Dragon Tattoo|Stieg Larsson|2005|465|Norstedts Forlag
+31|A Tale of Two Cities|Charles Dickens|1859|489|Chapman & Hall
+34|Life of Pi|Yann Martel|2001|331|Knopf Canada
+35|The Road|Cormac McCarthy|2006|287|Alfred A. Knopf
+36|The Shining|Stephen King|1977|447|Doubleday
+37|It|Stephen King|1986|1138|Viking Press
+38|Dune|Frank Herbert|1965|412|Chilton Books
+39|The Handmaid's Tale|Margaret Atwood|1985|311|McClelland and Stewart
