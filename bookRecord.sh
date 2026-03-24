@@ -142,7 +142,7 @@ add_book_dispatcher() {
       
     # read user option and validate choice, then call menu function
     print_add_menu
-    read -p "Enter integer option (or M to return to main menu): " add_choice
+    read -p "Enter integer option (or X to return to main menu): " add_choice
     if ! check_not_empty "$add_choice"; then
       pause
       continue
@@ -172,7 +172,7 @@ list_menu_dispatcher () {
     
     # read user option and validate choice, then call menu function
     print_list_menu
-    read -p "Enter integer option (or M to return to main menu): " list_choice
+    read -p "Enter integer option (or X to return to main menu): " list_choice
     if ! check_not_empty "$list_choice"; then
       pause
       continue
@@ -216,7 +216,7 @@ delete_menu_dispatcher () {
     
     # read user choice and validate option, then call menu function
     print_delete_menu 
-    read -p "Enter integer option (or M to return to main menu): " delete_choice
+    read -p "Enter integer option (or X to return to main menu): " delete_choice
     if ! check_not_empty "$delete_choice"; then
       pause
       continue
